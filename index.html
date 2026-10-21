@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Plan Flyover</title>
+<meta name="description" content="Turn a floor plan into a 3D model you can spin around and walk through. Everything stays on this device.">
+<meta name="theme-color" content="#1b2229">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="top">
+  <div class="brand"><span class="logo">▱</span> Plan Flyover <span id="ver" class="ver"></span></div>
+  <button id="btnProjects" class="projbtn" title="Projects"><span id="projName">No project</span> ▾</button>
+  <nav id="tabs">
+    <button data-view="plan" class="on">2D Plan</button>
+    <button data-view="three">3D View</button>
+  </nav>
+  <span id="saveState" class="muted small"></span>
+</header>
+
+<main>
+  <!-- 2D PLAN -->
+  <section id="view-plan" class="view on">
+    <div id="toolbar">
+      <div class="grp">
+        <button class="tool on" data-tool="select" title="Select / edit / pan (V)">⬚ <span>Select</span></button>
+        <button class="tool" data-tool="wall" title="Draw walls (W)">▭ <span>Wall</span></button>
+        <button class="tool" data-tool="door" title="Add a door on a wall (D)">⌐ <span>Door</span></button>
+        <button class="tool" data-tool="window" title="Add a window on a wall (N)">⊞ <span>Window</span></button>
+        <label class="wid" title="Opening width"><span class="muted small">Width</span> <input id="openW" value="3'0&quot;" size="5"></label>
+      </div>
+      <div class="grp">
+        <button id="btnFinish" class="accent" disabled title="Finish wall (Enter / double-tap)">✓ Finish</button>
+        <button id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+        <button id="btnRedo" title="Redo (Ctrl+Y)">↷</button>
+        <button id="btnDel" title="Delete selected (Del)" disabled>🗑</button>
+        <button id="btnSnap" class="on" title="Snap to 0/45/90° and wall ends (hold Shift to bypass)">⊾ <span>Snap</span></button>
+      </div>
+      <div class="grp">
+        <button id="btnScale" class="scalebtn" title="Set the plan scale">📏 <span id="scaleLabel">No scale</span></button>
+        <button id="btnDetect" title="Try to find walls automatically (beta)">✨ <span>Auto-detect</span> <sup class="beta">beta</sup></button>
+      </div>
+      <div class="grp right">
+        <button id="zoomOut" title="Zoom out">−</button>
+        <button id="zoomFit" title="Fit plan (F)"><span id="zoomLabel">Fit</span></button>
+        <button id="zoomIn" title="Zoom in">+</button>
+        <button id="togglePanel" title="Show/hide side panel">☰</button>
+      </div>
+    </div>
+    <div id="planBody">
+      <div id="viewer">
+        <div id="stage"><canvas id="planCanvas"></canvas><svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div id="empty">
+          <div class="emptyCard">
+            <div class="bigIcon">▱</div>
+            <h2>Plan Flyover</h2>
+            <p>Open a floor plan (PDF or image), set the scale, trace the walls, then fly through it in 3D.</p>
+            <button id="btnOpenPlan" class="accent big">Open a floor plan…</button>
+            <p class="muted small">Your plans never leave this device. No uploads, no tracking.</p>
+          </div>
+        </div>
+        <div id="hint"></div>
+        <div id="live"></div>
+      </div>
+      <aside id="panel">
+        <section class="card">
+          <h4>Quick stats</h4>
+          <div id="stats" class="stats"></div>
+        </section>
+        <section class="card">
+          <h4>New walls</h4>
+          <div class="row2">
+            <label class="field"><span>Height</span><input id="defH" value="8'0&quot;"></label>
+            <label class="field"><span>Thickness</span><input id="defT" value="4 1/2&quot;"></label>
+          </div>
+        </section>
+        <section class="card" id="selCard">
+          <h4>Selection</h4>
+          <div id="selBody" class="muted small">Tap a wall or an opening to edit it.</div>
+        </section>
+        <section class="card">
+          <h4>Plan</h4>
+          <div id="planInfo" class="small muted">No plan yet.</div>
+          <div class="btnrow"><button id="btnReplacePlan" class="small">Open plan…</button><button id="btnClearWalls" class="small">Clear walls</button></div>
+        </section>
+        <p class="muted tiny">Tips: Shift = no snap · Esc = cancel · Enter = finish · drag a selected wall's dots to move points · two fingers to zoom.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 3D -->
+  <section id="view-three" class="view">
+    <div id="threeWrap">
+      <canvas id="threeCanvas"></canvas>
+      <div id="threeBar">
+        <div class="seg">
+          <button id="mOrbit" class="on" title="Spin, zoom and pan">⟳ Orbit</button>
+          <button id="mWalk" title="First-person walk at eye height">🚶 Walk</button>
+        </div>
+        <button id="btnFly" class="accent" title="Smooth auto flyover">▶ Flyover</button>
+        <button id="btnShot" title="Save a PNG of this view">📷 <span>Screenshot</span></button>
+        <button id="btnRebuild" title="Raise the walls again">↻ <span>Rebuild</span></button>
+      </div>
+      <div id="stats3" class="stats3"></div>
+      <div id="help3" class="help3"></div>
+      <div id="joy"><div id="joyKnob"></div></div>
+      <div id="noWalls" class="emptyCard3 hidden"><h3>No walls yet</h3><p>Go to <b>2D Plan</b>, set the scale and trace some walls. They'll pop up here in 3D.</p><button id="goPlan" class="accent">Back to 2D Plan</button></div>
+    </div>
+  </section>
+</main>
+
+<input type="file" id="filePlan" accept="application/pdf,image/*,.pdf" hidden>
+<input type="file" id="fileImport" accept=".flyover,application/json" hidden>
+<div id="modalBack" class="hidden"><div id="modal"></div></div>
+<div id="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
